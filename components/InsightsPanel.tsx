@@ -7,8 +7,8 @@ import {
   LightBulbIcon,
   ChartBarIcon,
   ExclamationTriangleIcon,
-  TrendingUpIcon,
-  TargetIcon,
+  ArrowTrendingUpIcon,
+  BullseyeIcon,
   ClipboardDocumentListIcon
 } from '@heroicons/react/24/outline';
 
@@ -233,7 +233,7 @@ function generateDataInsights(
       type: 'distribution',
       title: 'Clustering Detected',
       description: `${((maxQuadrant.items.length / items.length) * 100).toFixed(0)}% of items are concentrated in the "${maxQuadrant.quadrant.name}" quadrant, suggesting a clear pattern in your data.`,
-      icon: TargetIcon,
+      icon: BullseyeIcon,
       color: 'blue',
       items: maxQuadrant.items
     });
@@ -248,7 +248,7 @@ function generateDataInsights(
       type: 'confidence',
       title: 'High Analysis Confidence',
       description: `${highConfidenceItems.length} out of ${items.length} items have high confidence scores (>80%), indicating reliable positioning.`,
-      icon: TrendingUpIcon,
+      icon: ArrowTrendingUpIcon,
       color: 'green',
       items: highConfidenceItems
     });
@@ -290,7 +290,7 @@ function generateDataInsights(
       type: 'patterns',
       title: `High ${axes.x} Tendency`,
       description: `Most items show high ${axes.x.toLowerCase()} values (average: ${xAverage.toFixed(1)}), indicating a general trend toward this characteristic.`,
-      icon: TrendingUpIcon,
+      icon: ArrowTrendingUpIcon,
       color: 'blue'
     });
   }
@@ -300,7 +300,7 @@ function generateDataInsights(
       type: 'patterns',
       title: `High ${axes.y} Pattern`,
       description: `The majority of items demonstrate high ${axes.y.toLowerCase()} (average: ${yAverage.toFixed(1)}), suggesting this is a dominant theme.`,
-      icon: TrendingUpIcon,
+      icon: ArrowTrendingUpIcon,
       color: 'purple'
     });
   }
@@ -312,7 +312,7 @@ function generateDataInsights(
       type: 'recommendations',
       title: 'Priority Focus Areas',
       description: `${topRightItems.length} items in the high-${axes.x}/high-${axes.y} area represent your highest priority opportunities requiring immediate attention.`,
-      icon: TargetIcon,
+      icon: BullseyeIcon,
       color: 'green',
       items: topRightItems
     });

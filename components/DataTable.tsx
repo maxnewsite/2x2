@@ -294,7 +294,7 @@ export default function DataTable({ items, axes, quadrants, className }: DataTab
                   <div className="space-y-2">
                     {selectedItem.citations.map((citation, index) => (
                       <div key={index} className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                        "{citation}"
+                        &ldquo;{citation}&rdquo;
                       </div>
                     ))}
                   </div>

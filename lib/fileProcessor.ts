@@ -1,9 +1,14 @@
-import * as pdfjsLib from 'pdfjs-dist';
+// Dynamic import for PDF.js to avoid SSR issues
+let pdfjsLib: any = null;
 
 // Configure PDF.js worker
-if (typeof window !== 'undefined') {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
-}
+const configurePDFJS = async () => {
+  if (typeof window !== 'undefined' && !pdfjsLib) {
+    pdfjsLib = await import('pdfjs-dist');
+    pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
+  }
+  return pdfjsLib;
+};
 
 export interface ProcessedFile {
   id: string;
@@ -81,41 +86,52 @@ async function processTextFile(file: File): Promise<string> {
 }
 
 async function processPDFFile(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    
-    reader.onload = async (event) => {
-      try {
-        const arrayBuffer = event.target?.result as ArrayBuffer;
-        if (!arrayBuffer) {
-          reject(new Error('Failed to read PDF file'));
-          return;
-        }
-
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        let fullText = '';
-        
-        // Extract text from all pages
-        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-          const page = await pdf.getPage(pageNum);
-          const textContent = await page.getTextContent();
-          
-          const pageText = textContent.items
-            .map((item: any) => item.str)
-            .join(' ');
-          
-          fullText += pageText + '\n';
-        }
-        
-        resolve(fullText.trim());
-        
-      } catch (error) {
-        reject(new Error(`PDF processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`));
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Ensure PDF.js is loaded
+      const pdfjs = await configurePDFJS();
+      if (!pdfjs) {
+        reject(new Error('PDF.js not available in this environment'));
+        return;
       }
-    };
-    
-    reader.onerror = () => reject(new Error('PDF file reading failed'));
-    reader.readAsArrayBuffer(file);
+
+      const reader = new FileReader();
+      
+      reader.onload = async (event) => {
+        try {
+          const arrayBuffer = event.target?.result as ArrayBuffer;
+          if (!arrayBuffer) {
+            reject(new Error('Failed to read PDF file'));
+            return;
+          }
+
+          const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+          let fullText = '';
+          
+          // Extract text from all pages
+          for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+            const page = await pdf.getPage(pageNum);
+            const textContent = await page.getTextContent();
+            
+            const pageText = textContent.items
+              .map((item: any) => item.str)
+              .join(' ');
+            
+            fullText += pageText + '\n';
+          }
+          
+          resolve(fullText.trim());
+          
+        } catch (error) {
+          reject(new Error(`PDF processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`));
+        }
+      };
+      
+      reader.onerror = () => reject(new Error('PDF file reading failed'));
+      reader.readAsArrayBuffer(file);
+    } catch (error) {
+      reject(new Error(`PDF processing initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`));
+    }
   });
 }
 
